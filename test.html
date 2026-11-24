@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Тест: 10 сұрақ</title>
+<style>
+:root{--bg:#d8edff;--card:#fff;--text:#1c2a44;--accent:#c0392b;--ok:#1e8e4e;--bad:#c0392b;--line:#c9d6e6}
+@media (prefers-color-scheme:dark){:root{--bg:#14202e;--card:#1e2d40;--text:#eaf1fa;--accent:#ff8a78;--ok:#5fd18a;--bad:#ff8a78;--line:#34495f}}
+*{box-sizing:border-box}
+body{margin:0;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0);background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+main{max-width:640px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:26px;margin:8px 0 14px}
+.bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden;margin-bottom:6px}
+.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .3s}
+.count{font-size:14px;opacity:.75;margin-bottom:14px}
+.card{background:var(--card);border-radius:16px;padding:20px}
+.q{font-size:20px;font-weight:700;margin:0 0 16px}
+.opt{display:block;width:100%;text-align:left;font:inherit;font-size:17px;color:var(--text);background:transparent;border:2px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px;cursor:pointer}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt.ok{border-color:var(--ok);background:rgba(30,142,78,.15)}
+.opt.bad{border-color:var(--bad);background:rgba(192,57,43,.15)}
+.opt:disabled{cursor:default}
+.next{font:inherit;font-weight:700;font-size:17px;color:#fff;background:var(--accent);border:0;border-radius:12px;padding:14px 22px;cursor:pointer;margin-top:6px}
+@media (prefers-color-scheme:dark){.next{color:#14202e}}
+.score{font-size:42px;font-weight:800;margin:6px 0}
+.row{display:flex;gap:8px;padding:8px 0;border-top:1px solid var(--line);font-size:15px}
+.row b{flex:0 0 28px}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<main>
+  <h1>Тест: 10 сұрақ</h1>
+  <div class="bar"><i id="bar"></i></div>
+  <div class="count" id="count"></div>
+  <div class="card" id="quiz">
+    <div class="count" id="tag"></div>
+    <p class="q" id="q"></p>
+    <div id="opts"></div>
+    <button class="next hidden" id="next">Келесі</button>
+  </div>
+  <div class="card hidden" id="result">
+    <div>Нәтиже</div>
+    <div class="score" id="score"></div>
+    <div id="review"></div>
+    <button class="next" id="again">Қайта өту</button>
+  </div>
+</main>
+<script>
+var DATA=[
+ {g:"Қазақ аспаптары",q:"Домбыра неше ішекті аспап?",o:["Екі","Үш","Төрт"],a:0},
+ {g:"Қазақ аспаптары",q:"Қобызды қалай ойнайды?",o:["Пернесін басады","Үрлейді","Садақпен тартады"],a:2},
+ {g:"Қазақ аспаптары",q:"Қазақтың үрмелі аспабы қайсы?",o:["Домбыра","Сыбызғы","Қобыз"],a:1},
+ {g:"Қазақ аспаптары",q:"Жетігеннің неше ішегі бар?",o:["Екі","Жеті","Он екі"],a:1},
+ {g:"Қазақ аспаптары",q:"Қазақтың соқпалы аспабы қайсы?",o:["Сыбызғы","Қобыз","Дауылпаз"],a:2},
+ {g:"Шетел аспаптары",q:"Фортепианода дыбыс қалай шығады?",o:["Пернесін басқанда","Үрлегенде","Садақ тартқанда"],a:0},
+ {g:"Шетел аспаптары",q:"Флейта қандай аспап?",o:["Ішекті","Үрмелі","Соқпалы"],a:1},
+ {g:"Шетел аспаптары",q:"Скрипканың неше ішегі бар?",o:["Екі","Алты","Төрт"],a:2},
+ {g:"Шетел аспаптары",q:"Классикалық гитараның неше ішегі бар?",o:["Алты","Төрт","Екі"],a:0},
+ {g:"Шетел аспаптары",q:"Оркестрдегі ең үлкен ішекті аспап?",o:["Скрипка","Контрабас","Гитара"],a:1}
+];
+var i=0,score=0,picks=[];
+var $=function(id){return document.getElementById(id)};
+function show(){
+  var d=DATA[i];
+  $("q").textContent=(i+1)+". "+d.q;
+  $("count").textContent=(i+1)+" / "+DATA.length;
+  $("tag").textContent=d.g;
+  $("bar").style.width=(i/DATA.length*100)+"%";
+  $("next").classList.add("hidden");
+  $("next").textContent=i===DATA.length-1?"Нәтиже":"Келесі";
+  var box=$("opts");box.innerHTML="";
+  d.o.forEach(function(t,k){
+    var b=document.createElement("button");
+    b.className="opt";b.textContent=t;
+    b.onclick=function(){pick(k)};
+    box.appendChild(b);
+  });
+}
+function pick(k){
+  var d=DATA[i],btns=$("opts").children;
+  picks[i]=k;
+  if(k===d.a)score++;
+  for(var n=0;n<btns.length;n++){
+    btns[n].disabled=true;
+    if(n===d.a)btns[n].classList.add("ok");
+    else if(n===k)btns[n].classList.add("bad");
+  }
+  $("next").classList.remove("hidden");
+}
+$("next").onclick=function(){
+  i++;
+  if(i<DATA.length){show();return}
+  $("quiz").classList.add("hidden");
+  $("result").classList.remove("hidden");
+  $("bar").style.width="100%";
+  $("count").textContent="";
+  $("tag").textContent="";
+  $("score").textContent=score+" / "+DATA.length;
+  var r=$("review");r.innerHTML="";
+  DATA.forEach(function(d,n){
+    var row=document.createElement("div");row.className="row";
+    row.innerHTML="<b>"+(picks[n]===d.a?"✓":"✗")+"</b><span></span>";
+    row.lastChild.textContent=d.q+" — "+d.o[d.a];
+    r.appendChild(row);
+  });
+};
+$("again").onclick=function(){
+  i=0;score=0;picks=[];
+  $("result").classList.add("hidden");
+  $("quiz").classList.remove("hidden");
+  show();
+};
+show();
+</script>
+</body>
+</html>
